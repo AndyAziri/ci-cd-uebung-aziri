@@ -19,6 +19,12 @@ class CalculatorTest {
         assertEquals(5, c.add(2, 3));
         // TODO: weitere Grenzfälle (z. B. negative Zahlen)
     }
+    
+    @Test
+    void subtract_shouldSubtractTwoIntegers(){
+        Calculator c = new Calculator();
+        assertEquals(7, c.subtract(10, 3));
+    }
 
     @Test
     void divide_byZero_shouldReturnZero_currentBehavior() {
@@ -32,5 +38,12 @@ class CalculatorTest {
         Calculator c = new Calculator();
         List<Integer> nums = Arrays.asList(1, 2, 3, null, 4);
         assertEquals(c.sumUp(nums), c.addAll(nums));
+    }
+
+    @Test
+    void sumUp_shouldReturnCorrectSum(){
+        Calculator c = new Calculator();
+        List<Integer> nums = Arrays.asList(1,2,3,4,5);
+        assertEquals(15, c.sumUp(nums));
     }
 }
