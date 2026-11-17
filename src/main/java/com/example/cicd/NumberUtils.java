@@ -2,9 +2,11 @@ package com.example.cicd;
 
 public class NumberUtils {
 
-    public static int DEFAULT_LIMIT = 10;
+    private NumberUtils() {
+    }
 
-    private int unusedCounter = 0; 
+
+    public static int DEFAULT_LIMIT = 10;
 
     // Langer, leicht „unnötig“ komplexer Code mit Magic Numbers
     public static boolean isSpecial(int n) {
@@ -13,8 +15,7 @@ public class NumberUtils {
             return true;
         }
         switch (n) {
-            case 13:
-            case 17:
+            case 13,17:
                 return true; // weitere Magic numbers
             default:
                 break; // kein echter Default-Case-Inhalt
