@@ -3,9 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
-    paths: ["src/**", "pom.xml", ".github/workflows/**"]
+    paths: ["src/**", "pom.xml", ".github/workflows/**", "Dockerfile", ".dockerignore"]
   pull_request:
-    paths: ["src/**", "pom.xml", ".github/workflows/**"]
+    paths: ["src/**", "pom.xml", ".github/workflows/**", "Dockerfile", ".dockerignore"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -27,8 +27,10 @@ jobs:
           - os: windows-latest
             java: 17
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
+      - name: Check out code
+        uses: actions/checkout@v7
+      - name: Set up Java ${{ matrix.java }}
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
@@ -47,10 +49,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Check out code (full history for Sonar)
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-java@v6
+      - name: Set up Java 21
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -59,3 +63,38 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+
+  docker:
+    name: Docker build & export image
+    needs: [build, sonar]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Compute short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build image (single-arch, loaded into local Docker)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: andyaziri/ci-cd-uebung:${{ env.SHORT_SHA }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Save image as tar
+        run: docker save andyaziri/ci-cd-uebung:${{ env.SHORT_SHA }} -o docker-image-${{ env.SHORT_SHA }}.tar
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: docker-image-${{ env.SHORT_SHA }}
+          path: docker-image-${{ env.SHORT_SHA }}.tar
+          retention-days: 7
