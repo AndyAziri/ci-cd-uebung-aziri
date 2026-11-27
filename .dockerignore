@@ -1,0 +1,23 @@
+# Build output
+target/
+
+# Git & CI metadata
+.git/
+.github/
+.gitignore
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docs
+*.md
+
+# Docker files themselves
+Dockerfile
+.dockerignore
